@@ -21,9 +21,10 @@ namespace TheCodeCamp.Data
     void DeleteTalk(Talk talk);
     Task<Talk> GetTalkByMonikerAsync(string moniker, int talkId, bool includeSpeakers = false);
     Task<Talk[]> GetTalksByMonikerAsync(string moniker, bool includeSpeakers = false);
+    Task<Talk[]> GetAllTalksAsync(bool includeSpeakers = false);
 
-    // Speakers
-    void AddSpeaker(Speaker speaker);
+        // Speakers
+        void AddSpeaker(Speaker speaker);
     void DeleteSpeaker(Speaker speaker);
     Task<Speaker[]> GetSpeakersByMonikerAsync(string moniker);
     Task<Speaker> GetSpeakerAsync(int speakerId);

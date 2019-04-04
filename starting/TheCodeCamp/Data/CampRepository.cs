@@ -87,6 +87,22 @@ namespace TheCodeCamp.Data
       return await query.ToArrayAsync();
     }
 
+    public async Task<Talk[]> GetAllTalksAsync(bool includeSpeakers = false)
+    {
+      IQueryable<Talk> query = _context.Talks;
+
+      if (includeSpeakers)
+      {
+        query = query
+          .Include(t => t.Speaker);
+      }
+
+      // Order It
+      query = query.OrderBy(t => t.TalkId);
+
+      return await query.ToArrayAsync();
+    }
+
     public async Task<Camp> GetCampAsync(string moniker, bool includeTalks = false)
     {
       IQueryable<Camp> query = _context.Camps

@@ -11,14 +11,13 @@ using TheCodeCamp.Models;
 
 namespace TheCodeCamp.Controllers
 {
-    [ApiVersion("1.0")]
-    [ApiVersion("1.1")]
+    [ApiVersion("2.0")]
     [RoutePrefix("api/camps")]
-    public class CampsController : ApiController
+    public class CampsControllerV2 : ApiController
     {
         private readonly ICampRepository _repository;
         private readonly IMapper _mapper;
-        public CampsController(ICampRepository repository, IMapper mapper)
+        public CampsControllerV2(ICampRepository repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
@@ -42,7 +41,6 @@ namespace TheCodeCamp.Controllers
             }
         }
 
-        [MapToApiVersion("1.0")]
         [Route("{moniker}", Name = "GetCamp")]
         public async Task<IHttpActionResult> Get(string moniker, bool includeTalks = false)
         {
@@ -60,24 +58,7 @@ namespace TheCodeCamp.Controllers
             }
         }
 
-        [MapToApiVersion("1.1")]
-        [Route("{moniker}", Name = "GetCamp11")]
-        public async Task<IHttpActionResult> Get(string moniker)
-        {
-            try
-            {
-                var result = await _repository.GetCampAsync(moniker, true);
-
-                if (result == null) return NotFound();
-
-                return Ok(_mapper.Map<CampModel>(result));
-            }
-            catch (Exception e)
-            {
-                return InternalServerError(e);
-            }
-        }
-
+       
         [Route("searchByDate/{eventDate:datetime}")]
         [HttpGet]
         public async Task<IHttpActionResult> SearchByEventDate(DateTime eventDate, bool includeTalks = false)

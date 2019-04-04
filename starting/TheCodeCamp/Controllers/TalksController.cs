@@ -36,6 +36,28 @@ namespace TheCodeCamp.Controllers
             }
         }
 
+        [Route("all")]
+        public async Task<IHttpActionResult> GetAll(string moniker, bool includeSpeakers = false)
+        {
+            try
+            {
+                if (("all").Equals(moniker))
+                {
+                    var results = await _repository.GetAllTalksAsync(includeSpeakers);
+
+                    return Ok(_mapper.Map<IEnumerable<TalkModel>>(results));
+
+                }
+
+                return NotFound();
+                
+            }
+            catch (Exception e)
+            {
+                return InternalServerError(e);
+            }
+        }
+
         [Route("{id:int}", Name = "GetTalk")]
         public async Task<IHttpActionResult> Get(string moniker, int id, bool includeSpeakers = false)
         {
@@ -66,6 +88,14 @@ namespace TheCodeCamp.Controllers
                     {
                         var talk = _mapper.Map<Talk>(model);
                         talk.Camp = camp;
+
+                        //Map the Speaker if necessary
+                        if (model.Speaker != null)
+                        {
+                            var speaker = await _repository.GetSpeakerAsync(model.Speaker.SpeakerId);
+                            if (speaker != null) talk.Speaker = speaker;
+                        }                        
+
                         _repository.AddTalk(talk);
 
                         if (await _repository.SaveChangesAsync())
@@ -82,6 +112,72 @@ namespace TheCodeCamp.Controllers
             }
             return BadRequest(ModelState);
         }
+
+        [Route("{id:int}")]
+        public async Task<IHttpActionResult> Put(string moniker, int id, TalkModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var talk = await _repository.GetTalkByMonikerAsync(moniker, id, true);
+                    if (talk == null) return NotFound();
+
+                    if (model.TalkId < 1)
+                    {
+                        model.TalkId = talk.TalkId;
+                    }
+
+                    // Ignore the Speaker
+                    _mapper.Map(model, talk);
+
+                    // Change speaker if needed
+                    if (talk.Speaker == null || talk.Speaker.SpeakerId != model.Speaker.SpeakerId)
+                    {
+                        var speaker = await _repository.GetSpeakerAsync(model.Speaker.SpeakerId);
+                        if (speaker != null) talk.Speaker = speaker;
+                    }
+
+                    if (await _repository.SaveChangesAsync())
+                    {
+                        return Ok(_mapper.Map<TalkModel>(talk));
+                    }                   
+                }                               
+            }
+            catch (Exception e)
+            {
+                return InternalServerError(e);
+            }
+
+            return BadRequest(ModelState);
+        }
+
+        [Route("{id:int}")]
+        public async Task<IHttpActionResult> Delete(string moniker, int id)
+        {
+            try
+            {
+                var talk = await _repository.GetTalkByMonikerAsync(moniker, id);
+
+                if (talk == null) return NotFound();
+
+                _repository.DeleteTalk(talk);
+
+                if (await _repository.SaveChangesAsync())
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return InternalServerError();
+                }
+            }
+            catch (Exception e)
+            {
+                return InternalServerError(e);
+            }
+        }
+
 
     }
 }
